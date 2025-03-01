@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
-""" Populates the database with seed data
-"""
+from api.v1.models import *
+from api.v1.models.associations import Base
+from api.v1.services.user import user_service
 from api.db.database import create_database, get_db
 from api.v1.models.user import User, WaitlistUser
 from api.v1.models.org import Organization
@@ -15,10 +15,10 @@ from api.v1.models.role import Role
 from api.v1.models.permission import Permission
 from api.utils.auth import hash_password
 
-create_database()
+# create_database()
 db = next(get_db())
 
-
+# Seed users
 user_1 = User(
     email="test@mail",
     username="testuser",
@@ -40,44 +40,53 @@ user_3 = User(
     first_name="Bob",
     last_name="Dwayne",
 )
-admin = User(
+
+# Admin user from HEAD
+admin_1 = User(
     email="admin@mail",
     username="admin",
     password=hash_password("admin12345"),
-    first_name="mba",
-    last_name="kama",
-    is_admin = True,
-    is_active = True
+    first_name="Mba",
+    last_name="Kama",
+    is_admin=True,
+    is_active=True
 )
 
-user_1 = User(email="test@mail", username="testuser", password="testpass", first_name="John", last_name="Doe")
-user_2 = User(email="test1@mail", username="testuser1", password="testpass1", first_name="Jane", last_name="Boyle")
-user_3 = User(email="test2@mail", username="testuser2", password="testpass2", first_name="Bob", last_name="Dwayne")
+# Admin user from dev branch
+admin_2 = User(
+    email="Isaacj@gmail.com",
+    password=user_service.hash_password("45@&tuTU"),
+    first_name="Isaac",
+    last_name="John",
+    is_active=True,
+    is_superadmin=True,
+    is_deleted=False,
+    is_verified=True,
+)
 
+db.add_all([user_1, user_2, user_3, admin_1, admin_2])
 
-db.add_all([user_1, user_2, user_3, admin])
-
-org_1 = Organization(name= "Python Org", description="An organization for python develoers")
-org_2 = Organization(name="Django Org", description="An organization of django devs")
-org_3 = Organization(name="FastAPI Devs", description="An organization of Fast API devs")
-
-# user_role = Role()
+# Seed organizations
+org_1 = Organization(name="Python Org", description="An organization for Python developers")
+org_2 = Organization(name="Django Org", description="An organization for Django developers")
+org_3 = Organization(name="FastAPI Devs", description="An organization for FastAPI developers")
 
 db.add_all([org_1, org_2, org_3])
-
 
 org_1.users.extend([user_1, user_2, user_3])
 org_2.users.extend([user_1, user_3])
 org_3.users.extend([user_2, user_1])
 
-product_1 = Product(name="bed", price=400000)
-product_2 = Product(name="shoe", price=150000)
+# Seed products
+product_1 = Product(name="Bed", price=400000)
+product_2 = Product(name="Shoe", price=150000)
 
+db.add_all([product_1, product_2])
+
+# Seed profiles
 profile_1 = Profile(bio='My name is John Doe', phone_number='09022112233')
 user_1.profile = profile_1
 
-db.add_all([product_1, product_2])
 db.commit()
-users = db.query(Organization).first().users
-print("Seed data succesfully")
 
+print("Seed data successfully added")

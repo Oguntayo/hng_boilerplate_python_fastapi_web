@@ -6,14 +6,13 @@ from pathlib import Path
 # Use this to build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent
 
-
 class Settings(BaseSettings):
-    """ Class to hold application's config values."""
+    """Class to hold application's config values."""
 
-    # API_V1_STR: str = "/api/v1"
-    # APP_NAME: str = "TicketHub"
-    # JWT_SECRET_KEY: str = config("JWT_SECRET_KEY")
-    # ACCESS_TOKEN_EXPIRE_MINUTES: int = config("ACCESS_TOKEN_EXPIRE_MINUTES")
+    SECRET_KEY: str = config("SECRET_KEY")
+    ALGORITHM: str = config("ALGORITHM")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = config("ACCESS_TOKEN_EXPIRE_MINUTES")
+    JWT_REFRESH_EXPIRY: int = config("JWT_REFRESH_EXPIRY")
 
     # Database configurations
     DB_HOST: str = config("DB_HOST")
@@ -25,10 +24,25 @@ class Settings(BaseSettings):
     dev: str     = config("DB_TEST_ENV")
 
     MAIL_USERNAME: str = config("MAIL_USERNAME")
-    MAIL_PASSWORD: str = config('MAIL_PASSWORD')
-    MAIL_FROM: str = config('MAIL_FROM')
-    MAIL_PORT: int = config('MAIL_PORT')
-    MAIL_SERVER: str = config('MAIL_SERVER')
+    MAIL_PASSWORD: str = config("MAIL_PASSWORD")
+    MAIL_FROM: str = config("MAIL_FROM")
+    MAIL_PORT: int = config("MAIL_PORT")
+    MAIL_SERVER: str = config("MAIL_SERVER")
 
+    FLUTTERWAVE_SECRET: str = config("FLUTTERWAVE_SECRET")
+
+    TWILIO_ACCOUNT_SID: str = config("TWILIO_ACCOUNT_SID")
+    TWILIO_AUTH_TOKEN: str = config("TWILIO_AUTH_TOKEN")
+    TWILIO_PHONE_NUMBER: str = config("TWILIO_PHONE_NUMBER")
+
+    APP_NAME: str = config("APP_NAME")
+
+    # Base URLs
+    ANCHOR_PYTHON_BASE_URL: str = config(
+        "ANCHOR_PYTHON_BASE_URL", default="https://anchor-python.teams.hng.tech"
+    )
+
+    # telex webhook url
+    TELEX_WEBHOOK_URL: str = config("TELEX_WEBHOOK_URL")
 
 settings = Settings()
