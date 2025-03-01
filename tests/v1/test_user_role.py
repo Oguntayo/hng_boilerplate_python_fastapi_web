@@ -25,7 +25,7 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Drop and recreate tables before tests
-Base.metadata.drop_all(bind=engine)  
+
 Base.metadata.create_all(bind=engine)
 
 # Override database dependency
@@ -45,7 +45,7 @@ url = "/api/v1"
 def test_db():
     """Fixture to reset database before tests."""
     db = TestingSessionLocal()
-    Base.metadata.drop_all(bind=engine)  # Drop all tables
+    
     Base.metadata.create_all(bind=engine)  # Recreate tables
     db.commit()
     yield db

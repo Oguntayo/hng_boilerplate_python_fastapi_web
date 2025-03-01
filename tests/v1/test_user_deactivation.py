@@ -75,7 +75,7 @@ client = TestClient(app)
 def test_db():
     """Fixture to reset database before tests."""
     db = TestingSessionLocal()
-    Base.metadata.drop_all(bind=engine)  # Drop all tables
+    
     Base.metadata.create_all(bind=engine)  # Recreate tables
     db.commit()
     yield db
