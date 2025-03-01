@@ -90,6 +90,7 @@ def create_user(test_db):
         email="testuser@gmail.com",
         password=user_service.hash_password('Testpassword@123'),
         first_name='Test',
+        avatar_url=None,
         last_name='User'
     )
     test_db.add(user)
@@ -145,6 +146,7 @@ def test_user_inactive(test_db):
         password=user_service.hash_password('Testpassword@123'),
         first_name='Test',
         last_name='User',
+        avatar_url=None,
         is_active=False,
         is_superadmin=False
     )
@@ -191,6 +193,7 @@ def create_admin_user(test_db):
         password=user_service.hash_password('adminpassword'),
         first_name='Admin',
         last_name='User',
+        avatar_url=None,
         is_superadmin=True,
         is_active=True
     )
@@ -229,6 +232,7 @@ def test_deactivate_account_already_deactivated(test_db, create_admin_user):
         password=user_service.hash_password('Testpassword@123'),
         first_name='Test',
         last_name='User',
+        avatar_url=None,
         is_active=False
     )
     test_db.add(user)
@@ -267,6 +271,7 @@ def test_successful_deactivation(test_db, create_admin_user):
         password=user_service.hash_password('Testpasswordb@123'),
         first_name='Testb',
         last_name='Userb',
+        avatar_url=None,
         is_active=True
     )
     test_db.add(user)
