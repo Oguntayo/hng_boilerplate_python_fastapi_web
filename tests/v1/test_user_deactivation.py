@@ -255,8 +255,8 @@ def test_deactivate_account_already_deactivated(test_db, create_admin_user):
 
 # Test function for successful deactivation of an active user
 from unittest import mock
-from api.core.dependencies.email import mail_service
 
+from api.core.dependencies.google_email import mail_service
 def test_successful_deactivation(test_db, create_admin_user):
     '''Test for successful user deactivation'''
     
