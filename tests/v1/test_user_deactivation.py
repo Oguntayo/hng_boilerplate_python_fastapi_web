@@ -40,7 +40,7 @@ from sqlalchemy.orm import sessionmaker
 from decouple import config
 from main import app
 from api.db.database import Base, get_db
-from api.v1.services.user.user_service import hash_password
+from api.v1.services.user import user_service
 from api.v1.models.user import User
 from api.v1.models.base import Base
 
@@ -86,7 +86,7 @@ def create_user(test_db):
     user = User(
         username="testuser",
         email="testuser@gmail.com",
-        password=hash_password('Testpassword@123'),
+        password=user_service.hash_password('Testpassword@123'),
         first_name='Test',
         last_name='User'
     )
@@ -140,7 +140,7 @@ def test_user_inactive(test_db):
     user = User(
         username="testuser1",
         email="testuser1@gmail.com",
-        password=hash_password('Testpassword@123'),
+        password=user_service.hash_password('Testpassword@123'),
         first_name='Test',
         last_name='User',
         is_active=False,
@@ -170,7 +170,7 @@ def create_user(test_db):
     user = User(
         username="testuser",
         email="testuser@gmail.com",
-        password=hash_password('Testpassword@123'),
+        password=user_service.hash_password('Testpassword@123'),
         first_name='Test',
         last_name='User'
     )
@@ -186,7 +186,7 @@ def create_admin_user(test_db):
     admin_user = User(
         username="adminuser2",
         email="adminuser2@example.com",
-        password=hash_password('adminpassword'),
+        password=user_service.hash_password('adminpassword'),
         first_name='Admin',
         last_name='User',
         is_admin=True,
@@ -224,7 +224,7 @@ def test_deactivate_account_already_deactivated(test_db, create_admin_user):
     user = User(
         username="deactivateduserb",
         email="deactivateduserb@gmail.com",
-        password=hash_password('Testpassword@123'),
+        password=user_service.hash_password('Testpassword@123'),
         first_name='Test',
         last_name='User',
         is_active=False
@@ -262,7 +262,7 @@ def test_successful_deactivation(test_db, create_admin_user):
     user = User(
         username="activeuserbb",
         email="activeuserbb@gmail.com",
-        password=hash_password('Testpasswordb@123'),
+        password=user_service.hash_password('Testpasswordb@123'),
         first_name='Testb',
         last_name='Userb',
         is_active=True

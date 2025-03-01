@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 from decouple import config
 from main import app
 from api.db.database import Base, get_db
-from api.v1.services.user.user_service import hash_password
+from api.v1.services.user import user_service
 from api.v1.models.user import User
 from api.v1.models.base import Base
 
