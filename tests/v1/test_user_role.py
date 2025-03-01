@@ -66,7 +66,7 @@ def create_user(username: str, password: str):
         "first_name": "kama",
         "last_name": "mba",
         "email": f"{username}@example.com",
-        "is_admin": True
+        "is_superadmin": True
     }
 
     response = client.post(f"{url}/auth/register", json=user_data)

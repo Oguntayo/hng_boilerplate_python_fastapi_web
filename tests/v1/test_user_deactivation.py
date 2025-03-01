@@ -146,7 +146,7 @@ def test_user_inactive(test_db):
         first_name='Test',
         last_name='User',
         is_active=False,
-        is_admin=False
+        is_superadmin=False
     )
     test_db.add(user)
     test_db.commit()
@@ -191,7 +191,7 @@ def create_admin_user(test_db):
         password=user_service.hash_password('adminpassword'),
         first_name='Admin',
         last_name='User',
-        is_admin=True,
+        is_superadmin=True,
         is_active=True
     )
     test_db.add(admin_user)
