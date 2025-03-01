@@ -5,15 +5,15 @@ from sqlalchemy.orm import Session
 
 from api.core.dependencies.email import mail_service
 from api.utils.auth import create_access_token
-
+from fastapi.responses import JSONResponse
 from api.utils.config import SECRET_KEY, ALGORITHM
 from ..models.user import User
-from api.v1.schemas.user import DeactivateUserSchema
+from api.v1.schemas.user import DeactivateUserSchema,AdminDeactivateUserSchema
 from api.db.database import get_db
-from api.utils.dependencies import get_current_user
+from api.utils.dependencies import get_current_user,get_current_admin
+from uuid import UUID  
 
-
-user = APIRouter(prefix='/api/v1/users', tags=['Users'])
+user = APIRouter(prefix='/users', tags=['Users'])
 
 @user.patch('/accounts/deactivate', status_code=200)
 async def deactivate_account(request: Request, schema: DeactivateUserSchema, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
@@ -79,3 +79,67 @@ async def reactivate_account(request: Request, db: Session = Depends(get_db)):
     db.commit()
 
     return {"status_code": 200, "message": "Account reactivated successfully. Check email for confirmation"}
+
+
+
+
+@user.patch('/deactivate', status_code=200)
+async def deactivate_account(request: Request, schema: AdminDeactivateUserSchema, db: Session = Depends(get_db), admin: User = Depends(get_current_admin)):
+    '''Endpoint for admin to deactivate a user account'''
+
+    
+    user_to_deactivate = db.query(User).filter(User.username == schema.username).with_for_update().first()
+
+    if user_to_deactivate is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": "error",
+                "status_code": 404,
+                "message": "User not found",
+                "data": {}
+            }
+        )
+
+    if not user_to_deactivate.is_active:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "status_code": 400,
+                "message": "User is already deactivated",
+                "data": {}
+            }
+        )
+
+    
+    db.query(User).filter(User.username == schema.username).update({"is_active": False})
+    
+    try:
+        mail_service.send_mail(
+            to=user_to_deactivate.email,
+            subject='Account deactivation',
+            body=f'Hello {user_to_deactivate.first_name},\n\nYour account has been deactivated successfully.\n\nTo reactivate your account if this was a mistake, please click the link below:\n{request.url.hostname}/api/v1/users/accounts/reactivate?token={schema.token}\n\nThis link expires after 15 minutes.'
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "status_code": 500,
+                "message": f"Error sending email: {str(e)}",
+                "data": {}
+            }
+        )
+
+    db.commit()
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "success",
+            "status_code": 200,
+            "message": "User account deactivated successfully",
+            "data": {}
+        }
+    )

@@ -18,7 +18,7 @@ from api.utils.auth import hash_password
 create_database()
 db = next(get_db())
 
-<<<<<<< HEAD
+
 user_1 = User(
     email="test@mail",
     username="testuser",
@@ -49,11 +49,11 @@ admin = User(
     is_admin = True,
     is_active = True
 )
-=======
+
 user_1 = User(email="test@mail", username="testuser", password="testpass", first_name="John", last_name="Doe")
 user_2 = User(email="test1@mail", username="testuser1", password="testpass1", first_name="Jane", last_name="Boyle")
 user_3 = User(email="test2@mail", username="testuser2", password="testpass2", first_name="Bob", last_name="Dwayne")
->>>>>>> 343a290ec289fcc324c0810f6ba1ea25a333af81
+
 
 db.add_all([user_1, user_2, user_3, admin])
 

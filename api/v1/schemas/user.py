@@ -7,4 +7,11 @@ class DeactivateUserSchema(BaseModel):
 
     reason: Optional[str] = None
     confirmation: bool
-    
+
+
+class AdminDeactivateUserSchema(BaseModel):
+    '''Schema for deactivating a user'''
+    username: str  
+    confirmation: bool
+    reason: Optional[str] = None  
+    token: str  

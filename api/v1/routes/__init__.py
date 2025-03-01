@@ -5,6 +5,7 @@ from api.v1.routes.plans import plans
 from api.v1.routes.newsletter_router import newsletter
 from api.v1.routes.permission import permission
 from api.v1.routes.token import token
+from api.v1.routes.user import user
 from api.v1.routes.orgs import org
 from api.v1.routes.super_admin import super_admin
 
@@ -17,5 +18,5 @@ api_version_one.include_router(plans)
 api_version_one.include_router(permission)
 api_version_one.include_router(token)
 api_version_one.include_router(org)
-
+api_version_one.include_router(user)
 
