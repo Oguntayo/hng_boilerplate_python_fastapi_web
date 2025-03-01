@@ -26,7 +26,8 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 # Drop and recreate tables before tests
 
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine, tables=[User.__table__])
+
 
 # Override database dependency
 def override_get_db():
@@ -46,7 +47,8 @@ def test_db():
     """Fixture to reset database before tests."""
     db = TestingSessionLocal()
     
-    Base.metadata.create_all(bind=engine)  # Recreate tables
+    Base.metadata.create_all(bind=engine, tables=[User.__table__])
+
     db.commit()
     yield db
     db.close()

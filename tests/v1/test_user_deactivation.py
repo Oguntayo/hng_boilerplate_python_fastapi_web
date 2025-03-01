@@ -50,7 +50,8 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db5"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine, tables=[User.__table__])
+
 # Suppress DeprecationWarnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -76,7 +77,8 @@ def test_db():
     """Fixture to reset database before tests."""
     db = TestingSessionLocal()
     
-    Base.metadata.create_all(bind=engine)  # Recreate tables
+    Base.metadata.create_all(bind=engine, tables=[User.__table__])
+
     db.commit()
     yield db
     db.close()
