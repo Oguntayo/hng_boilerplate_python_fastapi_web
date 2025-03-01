@@ -15,10 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.middleware.sessions import SessionMiddleware  # required by google oauth
-from api.v1.routes.newsletter_router import (
-    CustomException,
-    custom_exception_handler
-)
+
 
 from api.v1.routes import api_version_one
 from api.utils.json_response import JsonResponseDict
@@ -79,7 +76,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_exception_handler(CustomException, custom_exception_handler) # Newsletter custom exception registration
 
 app.include_router(api_version_one)
 
