@@ -14,21 +14,22 @@ from fastapi import FastAPI, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.middleware.sessions import SessionMiddleware 
-from api.v1.routes import api_version_one
+from starlette.middleware.sessions import SessionMiddleware  # required by google oauth
+
 from api.utils.json_response import JsonResponseDict
 from api.utils.logger import logger
+from api.v1.routes import api_version_one
 from api.utils.settings import settings
 from api.utils.send_logs import send_error_to_telex
 from scripts.populate_db import populate_roles_and_permissions
 
-Base.metadata.create_all(bind=engine)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan function"""
 
     yield
+
 
 app = FastAPI(
     lifespan=lifespan,
@@ -76,6 +77,7 @@ app.add_middleware(
 )
 
 app.include_router(api_version_one)
+
 
 @app.get("/", tags=["Home"])
 async def get_root(request: Request) -> dict:
