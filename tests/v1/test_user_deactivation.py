@@ -45,7 +45,7 @@ from api.v1.models.user import User
 
 
 # SQLALCHEMY_DATABASE_URL = config('DB_URL')
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db5"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db6"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
