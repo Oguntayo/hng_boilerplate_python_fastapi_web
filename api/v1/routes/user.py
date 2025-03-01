@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from api.core.dependencies.google_email import mail_service
-from api.utils.auth import create_access_token
 from api.utils.config import SECRET_KEY, ALGORITHM
 from api.utils.success_response import success_response
 from api.v1.models.user import User
