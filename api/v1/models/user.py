@@ -10,16 +10,16 @@ from api.v1.models.base_model import BaseTableModel
 
 class User(BaseTableModel):
     __tablename__ = "users"
-
-    email = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=True)
+    username = Column(String(50), unique=True, nullable=False)  # Keep username if needed
+    email = Column(String(100), unique=True, nullable=False)  # Use String(100)
+    password = Column(String(255), nullable=False)  # Use String(255) and nullable=False
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
-    avatar_url = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)  # Keep avatar_url for profile pictures
     is_active = Column(Boolean, server_default=text("true"))
-    is_superadmin = Column(Boolean, server_default=text("false"))
-    is_deleted = Column(Boolean, server_default=text("false"))
-    is_verified = Column(Boolean, server_default=text("false"))
+    is_superadmin = Column(Boolean, server_default=text("false"))  # Keep standardized naming
+    is_deleted = Column(Boolean, server_default=text("false"))  # Use correct name
+    is_verified = Column(Boolean, server_default=text("false"))  # Keep this field for verification
 
     profile = relationship(
         "Profile", uselist=False, back_populates="user", cascade="all, delete-orphan"

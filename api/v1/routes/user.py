@@ -1,75 +1,102 @@
-from typing import Annotated, Optional, Literal
-from fastapi import Depends, APIRouter, Request, status, Query, HTTPException
+from typing import Optional, Literal, Annotated
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
-
+from api.core.dependencies.google_email import mail_service
+from api.utils.config import SECRET_KEY, ALGORITHM
 from api.utils.success_response import success_response
 from api.v1.models.user import User
 from api.v1.schemas.user import (
-    AllUsersResponse, UserUpdate,
+    DeactivateUserSchema, AdminDeactivateUserSchema,  
+    AllUsersResponse, UserUpdate,  
     AdminCreateUserResponse, AdminCreateUser
 )
 from api.db.database import get_db
+from api.utils.dependencies import get_current_user, get_current_admin
 from api.v1.services.user import user_service
-
+from uuid import UUID  
 
 user_router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@user_router.delete('/delete', status_code=200)
-async def delete_account(request: Request, db: Session = Depends(get_db), current_user: User = Depends(user_service.get_current_user), user_id: Optional[str] = Query(None),):
-    '''Endpoint to delete a user account'''
-
-    auth_header = request.headers.get("Authorization")
-    access_token = (
-        auth_header.replace("Bearer ", "") if auth_header and auth_header.startswith("Bearer ") else None # this extracts access token from header but or returns None if header is missing or not in the right format
-    )
-
-    if user_id:
-        if not current_user.is_superadmin:  # Check if the logged-in user is an admin
-            raise HTTPException(status_code=401, detail="Only admins can delete users by ID.")
-        access_token = None # basically ignore the access token if user_id is provided (but it still has to be provided by an auth admin)
-
-    # Delete current user
-    user_service.delete(db=db, id=user_id, access_token=access_token)
-
-    return success_response(
-        status_code=200,
-        message='User successfully deleted',
-    )
-
-@user_router.patch("",status_code=status.HTTP_200_OK)
-def update_current_user(
-    current_user : Annotated[User , Depends(user_service.get_current_user)],
-    schema : UserUpdate,
-    db : Session = Depends(get_db),
+@user_router.patch('/deactivate', status_code=200)
+async def deactivate_account(
+    request: Request, schema: AdminDeactivateUserSchema, 
+    db: Session = Depends(get_db), 
+    admin: User = Depends(get_current_admin)
 ):
+    '''Endpoint for admin to deactivate a user account'''
+    
+    user_to_deactivate = db.query(User).filter(User.username == schema.username).with_for_update().first()
 
-    user = user_service.update(db=db, schema= schema, current_user=current_user)
-
-    return success_response(
-        status_code=status.HTTP_200_OK,
-        message='User Updated Successfully',
-        data= jsonable_encoder(
-            user,
-            exclude=['password', 'is_deleted', 'is_verified', 'updated_at', 'created_at', 'is_active']
+    if user_to_deactivate is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": "error",
+                "status_code": 404,
+                "message": "User not found",
+                "data": {}
+            }
         )
+
+    if not user_to_deactivate.is_active:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "status_code": 400,
+                "message": "User is already deactivated",
+                "data": {}
+            }
+        )
+
+    db.query(User).filter(User.username == schema.username).update({"is_active": False})
+    
+    try:
+        mail_service.send_mail(
+            to=user_to_deactivate.email,
+            subject='Account deactivation',
+            body=f'Hello {user_to_deactivate.first_name},\n\nYour account has been deactivated successfully.\n\nTo reactivate your account if this was a mistake, please click the link below:\n{request.url.hostname}/api/v1/users/accounts/reactivate?token={schema.token}\n\nThis link expires after 15 minutes.'
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "status_code": 500,
+                "message": f"Error sending email: {str(e)}",
+                "data": {}
+            }
+        )
+
+    db.commit()
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "success",
+            "status_code": 200,
+            "message": "User account deactivated successfully",
+            "data": {}
+        }
     )
 
 
 @user_router.patch("/{user_id}", status_code=status.HTTP_200_OK)
 def update_user(
-    user_id : str,
-    current_user : Annotated[User , Depends(user_service.get_current_super_admin)],
-    schema : UserUpdate,
-    db : Session = Depends(get_db)
+    user_id: str,
+    current_user: Annotated[User, Depends(user_service.get_current_super_admin)],
+    schema: UserUpdate,
+    db: Session = Depends(get_db)
 ):
     user = user_service.update(db=db, schema=schema, id=user_id, current_user=current_user)
 
     return success_response(
         status_code=status.HTTP_200_OK,
         message='User Updated Successfully',
-        data= jsonable_encoder(
+        data=jsonable_encoder(
             user,
             exclude=['password', 'is_superadmin', 'is_deleted', 'is_verified', 'updated_at', 'created_at', 'is_active']
         )
@@ -84,18 +111,6 @@ def delete_user(
 ):
     """Endpoint for user deletion (soft-delete)"""
 
-    """
-    Args:
-        user_id (str): User ID
-        current_user (User): Current logged in user
-        db (Session, optional): Database Session. Defaults to Depends(get_db).
-
-    Raises:
-        HTTPException: 403 FORBIDDEN (Current user is not a super admin)
-        HTTPException: 404 NOT FOUND (User to be deleted cannot be found)
-    """
-
-    # Check if user exists before attempting deletion
     user = user_service.fetch(db=db, id=user_id)
 
     if not user:
@@ -104,14 +119,13 @@ def delete_user(
             detail="User not found"
         )
 
-    # soft-delete the user
     user_service.delete(db=db, id=user_id)
 
-    # Return a standardized success response
     return success_response(
         status_code=200,
         message='User deleted successfully',
     )
+
 
 @user_router.get('', status_code=status.HTTP_200_OK, response_model=AllUsersResponse)
 async def get_users(
@@ -125,17 +139,6 @@ async def get_users(
 ):
     """
     Retrieves all users.
-    Args:
-        current_user: The current user(admin) making the request
-        db: database Session object
-        page: the page number
-        per_page: the maximum size of users for each page
-        is_active: boolean to filter active users
-        is_deleted: boolean to filter deleted users
-        is_verified: boolean to filter verified users
-        is_superadmin: boolean to filter users that are super admin
-    Returns:
-        UserData
     """
     query_params = {
         'is_active': is_active,
@@ -145,6 +148,7 @@ async def get_users(
     }
     return user_service.fetch_all(db, page, per_page, **query_params)
 
+
 @user_router.post("", status_code=status.HTTP_201_CREATED, response_model=AdminCreateUserResponse)
 def admin_registers_user(
     user_request: AdminCreateUser,
@@ -153,15 +157,9 @@ def admin_registers_user(
 ):
     '''
     Endpoint for an admin to register a user.
-    Args:
-        user_request: the body containing the user details to register
-        current_user: The superadmin registering the user
-        db: database Session object
-    Returns:
-        AdminCreateUserResponse: The full details of the newly created user
     '''
     return user_service.super_admin_create_user(db, user_request)
-    
+
 
 @user_router.get('/{role_id}/roles', status_code=status.HTTP_200_OK)
 async def get_users_by_role(
@@ -195,17 +193,16 @@ def get_current_user_organisations(
 
 @user_router.get("/{user_id}", status_code=status.HTTP_200_OK)
 def get_user_by_id(
-    user_id : str,
-    db : Session = Depends(get_db),
+    user_id: str,
+    db: Session = Depends(get_db),
     current_user: User = Depends(user_service.get_current_user)
 ):
-    
     user = user_service.get_user_by_id(db=db, id=user_id)
 
     return success_response(
         status_code=status.HTTP_200_OK,
         message='User retrieved successfully',
-        data = jsonable_encoder(
+        data=jsonable_encoder(
             user, 
             exclude=['password', 'is_superadmin', 'is_deleted', 'is_verified', 'updated_at', 'created_at', 'is_active']
         )

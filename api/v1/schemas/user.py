@@ -321,6 +321,12 @@ class DeactivateUserSchema(BaseModel):
     reason: Optional[str] = None
     confirmation: bool
 
+class AdminDeactivateUserSchema(BaseModel):
+    '''Schema for deactivating a user'''
+    username: str  
+    confirmation: bool
+    reason: Optional[str] = None  
+    token: str  
 
 class ChangePasswordSchema(BaseModel):
     """Schema for changing password of a user"""
@@ -384,13 +390,11 @@ class ChangePasswordSchema(BaseModel):
         
         return values
 
-
 class ChangePwdRet(BaseModel):
-    """schema for returning change password response"""
+    """Schema for returning change password response"""
 
     status_code: int
     message: str
-
 
 class MagicLinkRequest(BaseModel):
     """Schema for magic link creation"""
@@ -416,9 +420,8 @@ class MagicLinkRequest(BaseModel):
             raise ValueError(exc) from exc
         return values
 
-
 class MagicLinkResponse(BaseModel):
-    """Schema for magic link respone"""
+    """Schema for magic link response"""
 
     message: str
 
